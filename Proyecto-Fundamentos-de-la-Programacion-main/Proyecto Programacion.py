@@ -58,7 +58,7 @@ def clasificar_contraseña(puntuacion):
 def ordenar_contraseñas(listaDeContraseñasPuntuadas):
     for i in range(len(listaDeContraseñasPuntuadas)):
         for j in range(0, len(listaDeContraseñasPuntuadas) - i - 1):
-            if listaDeContraseñasPuntuadas[j][1] > listaDeContraseñasPuntuadas[j + 1][1]:
+            if listaDeContraseñasPuntuadas[j][1] < listaDeContraseñasPuntuadas[j + 1][1]:
                 listaDeContraseñasPuntuadas[j], listaDeContraseñasPuntuadas[j + 1] = listaDeContraseñasPuntuadas[j + 1], listaDeContraseñasPuntuadas[j]
     return listaDeContraseñasPuntuadas
 
