@@ -1,38 +1,20 @@
-passwords = open("passwords.txt", "r", encoding="utf-8")
-lineasPass = passwords.readlines()
-passwords.close()
+# Función para leer un archivo
+def leer_archivo(ruta):
+    with open(ruta, "r", encoding="utf-8") as archivo:
+        lineas = archivo.readlines()
+    return lineas
 
-patronesOdvios = open("patronesOdvios.txt", "r", encoding="utf-8")
-lineasOdvios = patronesOdvios.readlines()
-patronesOdvios.close()
-
-minusculas = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
-mayusculas = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
-numeros = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
-
-listaDeContraseñasPuntuadas = []
-
-for password in lineasPass:
-    if password[-1] == '\n':
-        password = password[:-1]
-
+# Función para calcular el puntaje de seguridad de una contraseña
+def calcular_puntaje(password, lineasOdvios, minusculas, mayusculas, numeros):
     puntuacion = 0
     existeMinus = False
     existeMayus = False
     existeNums = False
     existeSimbols = False
     simbolosExtra = 0
-    esPatronOdvio = False
-    categoria = ""
 
-    for i in range(len(password)):
-        caracter = password[i]
-        #no hacer lo demas cuando sea un salto de linea
-        if caracter == '\n':
-            continue
-        #asignar la puntuacion     
+    for caracter in password.strip():
         puntuacion += 1
-
         if not existeMinus and caracter in minusculas:
             puntuacion += 1
             existeMinus = True
@@ -50,40 +32,58 @@ for password in lineasPass:
                 simbolosExtra += 1
 
     puntuacion += simbolosExtra * 2
-    
-    #revisar que no esten en patrones odvios
+
     for patrones in lineasOdvios:
-        if patrones[-1] == '\n': #quitarle a los patrones los saltos de linea
-            patrones = patrones[:-1]
-        #ver si estan en patrones odvios y restarle puntos
+        patrones = patrones.strip() 
         if password == patrones:
-            esPatronOdvio = True
             puntuacion -= 5
             break
-    #clasificar
+
+    return puntuacion
+
+# Función para clasificar una contraseña según su puntaje
+def clasificar_contraseña(puntuacion):
     if puntuacion <= 15:
-        categoria = "Debil"
+        return "Debil"
     elif puntuacion > 15 and puntuacion <= 20:
-        categoria = "Moderada"
+        return "Moderada"
     elif puntuacion > 20 and puntuacion <= 35:
-        categoria = "Buena"
+        return "Buena"
     elif puntuacion > 35 and puntuacion <= 100:
-        categoria = "Excelente"
-    elif puntuacion > 100:
-        categoria = "Impenetrable"
-    
-    #añadir a la lista con sus 3 caracteristicas 
+        return "Excelente"
+    else:
+        return "Impenetrable"
+
+# Función para ordenar contraseñas según su puntaje
+def ordenar_contraseñas(listaDeContraseñasPuntuadas):
+    for i in range(len(listaDeContraseñasPuntuadas)):
+        for j in range(0, len(listaDeContraseñasPuntuadas) - i - 1):
+            if listaDeContraseñasPuntuadas[j][1] > listaDeContraseñasPuntuadas[j + 1][1]:
+                listaDeContraseñasPuntuadas[j], listaDeContraseñasPuntuadas[j + 1] = listaDeContraseñasPuntuadas[j + 1], listaDeContraseñasPuntuadas[j]
+    return listaDeContraseñasPuntuadas
+
+# Función para exportar el archivo con contraseñas clasificadas
+def exportar_archivo(nombre_archivo, listaDeContraseñasPuntuadas):
+    with open(nombre_archivo, "w", encoding="utf-8") as archivo:
+        for password, puntuacion, categoria in listaDeContraseñasPuntuadas:
+            archivo.write(f"Contraseña: {password} | Puntuacion: {puntuacion} | Categoria: {categoria}\n")
+
+# Programa principal 
+lineasPass = leer_archivo("passwords.txt")
+lineasOdvios = leer_archivo("patronesOdvios.txt")
+
+minusculas = 'abcdefghijklmnopqrstuvwxyz'
+mayusculas = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+numeros = '1234567890'
+
+listaDeContraseñasPuntuadas = []
+
+for password in lineasPass:
+    password = password.strip()  # Quitar salto de línea al principio y al final de la contraseña
+
+    puntuacion = calcular_puntaje(password, lineasOdvios, minusculas, mayusculas, numeros)
+    categoria = clasificar_contraseña(puntuacion)
     listaDeContraseñasPuntuadas.append((password, puntuacion, categoria))
 
-#ordenar en la lista
-for i in range(len(listaDeContraseñasPuntuadas)):
-    for j in range(0, len(listaDeContraseñasPuntuadas) - i - 1):
-        if listaDeContraseñasPuntuadas[j][1] > listaDeContraseñasPuntuadas[j + 1][1]:
-            listaDeContraseñasPuntuadas[j], listaDeContraseñasPuntuadas[j + 1] = listaDeContraseñasPuntuadas[j + 1], listaDeContraseñasPuntuadas[j]
-
-#guardar en el archivo
-with open("contraseñasClasificadas.txt", "w", encoding="utf-8") as guardarContraseñas:
-    for password, puntuacion, categoria in listaDeContraseñasPuntuadas:
-        guardarContraseñas.write(f"Contraseña: {password} | Puntuación: {puntuacion} | Categoria: {categoria} \n")
-
-
+listaDeContraseñasPuntuadas = ordenar_contraseñas(listaDeContraseñasPuntuadas)
+exportar_archivo("contraseñasClasificadas.txt", listaDeContraseñasPuntuadas)
