@@ -35,7 +35,7 @@ def calcular_puntaje(password, lineasOdvios, minusculas, mayusculas, numeros):
 
     for patrones in lineasOdvios:
         patrones = patrones.strip() 
-        if password == patrones:
+        if patrones in password:
             puntuacion -= 5
             break
 
